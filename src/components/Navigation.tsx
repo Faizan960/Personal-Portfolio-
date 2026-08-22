@@ -67,6 +67,69 @@ export function Navigation() {
     return () => window.removeEventListener("resize", measureIndicator);
   }, [measureIndicator]);
 
+  /* ── Landing on a hash from another route ─────────────────────────────────
+   * A full page load carrying a fragment — arriving from a case study's back
+   * link, or from any nav item on a sub-route — does not reliably land on the
+   * target section. Two things overrule the browser's initial fragment scroll,
+   * both of them *after* this effect runs: the router resets the position to the
+   * top, and the browser restores the previous scroll offset for the entry. Both
+   * were observed: `/#experience` landed at 0, `/#education` landed on a stale
+   * 2543. Either way the visitor arrives in the wrong place.
+   *
+   * So the target is re-asserted on a short bounded schedule rather than once —
+   * whichever tick lands after the interference wins, and `settled` makes the
+   * rest no-ops.
+   *
+   * `behavior: "instant"`, not `"auto"`: `"auto"` means *defer to the CSS
+   * `scroll-behavior`*, which is `smooth` here (`globals.css`). Arriving at
+   * `/#contact` under `"auto"` would animate some eleven thousand pixels of page
+   * past the visitor before settling. A page load should deposit them at their
+   * destination, so this one scroll is explicitly instant for everyone — the
+   * reduced-motion branch in `useScrollToSection` is for in-page clicks, where
+   * the easing is the point.
+   *
+   * Deliberately not `requestAnimationFrame`: a document that is hidden when the
+   * load completes — a link opened in a background tab — suspends rAF entirely,
+   * and the scroll would never be applied.
+   */
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (!id) return;
+
+    const settled = () => {
+      const target = document.getElementById(id);
+      if (!target) return true;
+
+      /* Anchors carry `scroll-margin-top: var(--scroll-offset)` to clear the
+       * floating nav, so a correct landing leaves the target near but not at the
+       * viewport top. This tolerance covers that offset and leaves an already
+       * correct native scroll alone instead of re-applying it. */
+      if (Math.abs(target.getBoundingClientRect().top) < 200) return true;
+
+      target.scrollIntoView({ behavior: "instant", block: "start" });
+      return false;
+    };
+
+    if (settled()) return;
+
+    const timers = [0, 120, 320].map((delay) =>
+      window.setTimeout(settled, delay),
+    );
+
+    /* Any real input means the visitor has taken over. Stop re-asserting rather
+     * than yanking them back to the fragment mid-scroll. */
+    const cancel = () => timers.forEach(window.clearTimeout);
+    const events = ["wheel", "touchstart", "keydown"] as const;
+    events.forEach((event) =>
+      window.addEventListener(event, cancel, { once: true, passive: true }),
+    );
+
+    return () => {
+      cancel();
+      events.forEach((event) => window.removeEventListener(event, cancel));
+    };
+  }, []);
+
   /* ── Sheet: scroll lock, Escape, focus management ───────────────────────── */
 
   const closeMenu = useCallback(() => {

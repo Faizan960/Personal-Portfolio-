@@ -43,19 +43,34 @@ This is load-bearing, not decorative. Rules to preserve when editing:
   placeholder — do not write around it.
 - **A `null` href never becomes a link.** Contact rows and footer links render a
   non-focusable pending element instead, so there are no dead links to nowhere.
-- **Private repositories are never linkified.** `project.repo` is
-  `{ url, visibility }`. The URL is stored even when private so publishing is a
-  one-field change, but components must gate on `visibility === "public"` — never on
-  `url != null`. Niyyah.app and Deepfakedetection are private today and render a
-  "Private repository / details available on request" state. Collab-Notes is public.
-- **`stage` must not be upgraded implicitly.** `null` means no status claim, and renders
-  no chip. Do not default it to "Live" or "Complete".
+- **Repository visibility is data, not an assumption.** `project.visibility` is a
+  four-state field — `"public" | "private" | "development" | "unknown"` — held separately
+  from `project.github`. A URL being present says nothing about whether a visitor can open
+  it, so **no component may read `github` to decide whether to render a link**. Every
+  repository label and link comes from `presentRepository()` in
+  [`src/lib/project.ts`](src/lib/project.ts), whose `switch` is exhaustive over the union:
+  adding a fifth state is a compile error there rather than a silently missing branch that
+  ships a misleading link. Public → `View on GitHub`; private → `Private Repository` with no
+  link; development → `Repository in development`; unknown → nothing at all. Visibility
+  changes over time — verified against GitHub on 2026-08-22, Niyyah.app, Deepfakedetection
+  and Collab-Notes are all public, and GramCare has no published repository yet
+  (`"development"`). Re-check rather than trusting this line.
+- **`status` must not be upgraded implicitly.** `null` means no status claim, and renders
+  no chip. Do not default it to "Live" or "Complete", and note every label in
+  `STATUS_LABELS` is non-committal by design — none implies shipped, deployed, released or
+  validated.
 - **Empty arrays are meaningful.** `experience[].highlights` is empty for the ongoing
-  InAmigos role because there are no completed outcomes yet, and GramCare's `tech` is
-  empty because no stack has been confirmed. Both render nothing rather than "TBD".
+  InAmigos role because there are no completed outcomes yet and for Static Inc. because the
+  only statement about it is already its summary; GramCare's `tech` is empty because no
+  stack has been confirmed. All three render nothing rather than "TBD".
 - **Scope of claims is exact.** The hackathon entry is scoped to the *internal* round by
   its `context` field. Do not present it as a national Smart India Hackathon placement,
   and do not drop the context when restyling.
+- **GramCare is under active development.** It must not be described as completed,
+  production-ready, deployed, clinically validated or publicly released, and no model
+  architecture, dataset, accuracy figure or medical claim may be attributed to it. Its
+  case study is a set of reserved sections precisely so the gaps stay visible instead of
+  being filled with plausible prose.
 
 ### Privacy
 
@@ -72,10 +87,12 @@ Public contact surface: email, GitHub, LinkedIn.
 
 | Goal | Change |
 | --- | --- |
-| Publish a private repo | On that project: `repo.visibility: "public"`. That one word turns the "Private repository" state into a real link. Nothing else changes. |
-| Add a project | Append to `projects`. Set `index` (the mono numeral), `category`, `summary`, `tech`, and `repo`. Leave `featured: false` unless it should take the lead surface. |
+| Publish a repo | On that project: `visibility: "public"` (and a `github` URL). That one field turns the "Private Repository" / "Repository in development" label into a real link, via `presentRepository`. Nothing else changes. |
+| Take a repo private | Set `visibility: "private"`. Leave `github` in place — the URL is kept so re-publishing is a one-field change, and the label state is what suppresses the link. |
+| Add a project | Append to `projects`. Set `index` (the mono numeral), `category`, `summary`, `tech`, `status`, `visibility` and `github`. Leave `featured: false` unless it should take the lead surface. |
 | Feature a different project | Move `featured: true` to that entry and clear it from the current one. `Projects` resolves the lead by `find(p => p.featured)`, so no component edit is needed. Exactly one should be true. |
-| Write the GramCare case study | Fill the `body` fields in `gramcare.detail.reservedSections`. While every body is `null` they render as a planned-coverage index; filled bodies become real content. |
+| Write the GramCare case study | Fill `detail.problem` / `solution` / `architecture` / `challenges` / `futureScope`, and the `body` fields in `detail.reservedSections`. While a body is `null` it renders as a planned-coverage index; filled bodies become real content. |
+| Give another project a case study | Put real content in its `detail`. `hasProjectDetail()` in [`portfolio.ts`](src/data/portfolio.ts) is the single gate: it drives both the "View Project" action in `Projects` **and** `generateStaticParams` in [`app/work/[slug]/page.tsx`](src/app/work/[slug]/page.tsx), so a link and its route can never disagree. GramCare is the only project that passes today. |
 | Add a project image | Drop the file in `public/`, set `image: "/name.png"`. Falls back to a CSS-generated visual when `null`. |
 | Add a job | Append to `experience` (**ascending** chronological — oldest first). Set `current: false` and add `highlights` for past roles. The single `current: true` entry becomes the section's level-3 surface. |
 | Add a qualification | Append to `education` (ascending). `award` is the credential class ("BE", "Diploma"); `qualification` is the subject. |
@@ -85,7 +102,7 @@ Public contact surface: email, GitHub, LinkedIn.
 | Add a résumé | Put the PDF in `public/`, set `personal.resumeHref`. A download link appears in Contact. |
 | Add contact details | Fill `handle` + `href` on entries in `contact.links`. Contact and Footer pick them up automatically. **Do not add a phone number here** — see [Privacy](#privacy). |
 | Add a nav item | Append to `navSections`. Drives desktop nav, mobile sheet and the scroll-spy indicator. Keep it a subset of `page.tsx`'s order so the indicator stays monotonic. |
-| Reorder sections | Edit `src/app/page.tsx`, then update the `SECTION_INDEX` constant in each moved component so the mono numerals stay sequential. |
+| Reorder sections | Edit `src/app/page.tsx`, then update **both** places the numeral lives: the `SECTION_INDEX` constant in each moved component (or the literal `index` prop, in `About` and `Contact`) *and* `navSections[].index` in `portfolio.ts`. These are duplicated with nothing enforcing agreement — the component numeral renders in the section heading, the data numeral renders in the nav and mobile sheet, and they will silently contradict each other if only one is changed. |
 
 ## Architecture
 
@@ -94,6 +111,8 @@ src/
 ├── app/
 │   ├── layout.tsx           fonts, metadata, ambient background, nav, footer
 │   ├── page.tsx             section composition and order
+│   ├── work/[slug]/page.tsx project case study — statically generated, gated on
+│   │                        hasProjectDetail; no page for an empty `detail`
 │   └── globals.css          Tailwind @theme: colour, type scale, radii
 ├── data/
 │   └── portfolio.ts         ← ALL CONTENT LIVES HERE
@@ -103,6 +122,8 @@ src/
 │   └── digital-core.css     hero visual layers
 ├── lib/
 │   ├── hooks.ts             capability-aware interaction hooks
+│   ├── project.ts           repository/status presentation rules — the only place
+│   │                        that decides whether a repo link may be rendered
 │   ├── geodesic.ts          3D mesh construction (pure, no React)
 │   ├── digitalCore.ts       canvas renderer for the hero visual
 │   └── cn.ts                class-name joiner

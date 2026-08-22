@@ -49,7 +49,7 @@ export function Contact() {
   return (
     <Section id="contact" labelledBy="contact-heading">
       <SectionHeading
-        index="07"
+        index="08"
         kicker={contact.kicker}
         heading={contact.heading}
         id="contact-heading"

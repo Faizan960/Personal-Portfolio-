@@ -28,7 +28,7 @@ import { cn } from "@/lib/cn";
  * fields, so this section's own labels live here. Move them to the data file if
  * it ever grows an `exploring` heading object.
  */
-const SECTION_INDEX = "05";
+const SECTION_INDEX = "06";
 const SECTION_KICKER = "Currently Exploring";
 const SECTION_HEADING = "Currently Exploring";
 

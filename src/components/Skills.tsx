@@ -29,7 +29,7 @@ import { cn } from "@/lib/cn";
  * "Skills" entry in `navSections`. Move them to the data file if it ever grows a
  * `skills` heading object.
  */
-const SECTION_INDEX = "06";
+const SECTION_INDEX = "02";
 const SECTION_KICKER = "Skills";
 const SECTION_HEADING = "Skills";
 
