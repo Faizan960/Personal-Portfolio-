@@ -1,0 +1,438 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+@import "../styles/materials.css";
+@import "../styles/digital-core.css";
+
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THEME — colour, type scale, radii, easing
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Declared in `@theme` so Tailwind generates matching utilities
+ * (`bg-surface-2`, `text-muted`, `rounded-panel`, `ease-spatial`, …).
+ *
+ * Palette intent: a cool near-black neutral ramp carries the entire interface.
+ * Exactly two accents exist, each with one job:
+ *   • `accent`      — ice blue. Focus rings, active states, Digital Core light.
+ *   • `accent-warm` — champagne. Small-type accents only (kickers, numerals).
+ * The warm/cool tension is what keeps the palette from reading as generic
+ * dark-mode-with-a-blue-gradient.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+@theme {
+  /* ── Surfaces ─────────────────────────────────────────────────────────── */
+  --color-void: #05060a;
+  --color-base: #0a0c11;
+  --color-surface-1: #0f1218;
+  --color-surface-2: #151922;
+  --color-surface-3: #1c212b;
+
+  /* ── Foreground ───────────────────────────────────────────────────────────
+   * Contrast on `--color-void`: text 18:1 · muted 8.2:1 · subtle 4.6:1.
+   * `faint` is decorative only (hairlines, inactive numerals) — never body copy.
+   */
+  --color-text: #eef1f5;
+  --color-muted: #a3abb8;
+  --color-subtle: #787f8d;
+  --color-faint: #474e5a;
+
+  /* ── Accents ──────────────────────────────────────────────────────────── */
+  --color-accent: #9dc6d8;
+  --color-accent-dim: #6f97a8;
+  --color-accent-warm: #e0d0b4;
+  --color-live: #7fd1a8;
+
+  /* ── Typefaces ────────────────────────────────────────────────────────────
+   * Variables are populated by `next/font` in `layout.tsx`; the stacks after
+   * them are real fallbacks, so type never collapses if a font fails to load.
+   */
+  --font-sans:
+    var(--font-inter), ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:
+    var(--font-mono-jb), ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+    Consolas, "Liberation Mono", monospace;
+
+  /* ── Type scale ───────────────────────────────────────────────────────────
+   * Fluid, and intentionally short: seven steps total. Hierarchy comes from
+   * scale + weight + colour + space, not from many font sizes.
+   */
+  --text-display: clamp(2.75rem, 8.5vw, 6.25rem);
+  --text-display--line-height: 0.94;
+  --text-display--letter-spacing: -0.035em;
+  --text-display--font-weight: 500;
+
+  --text-h2: clamp(2rem, 4.4vw, 3.25rem);
+  --text-h2--line-height: 1.04;
+  --text-h2--letter-spacing: -0.026em;
+  --text-h2--font-weight: 500;
+
+  --text-h3: clamp(1.375rem, 2.2vw, 1.75rem);
+  --text-h3--line-height: 1.18;
+  --text-h3--letter-spacing: -0.018em;
+  --text-h3--font-weight: 500;
+
+  --text-h4: 1.0625rem;
+  --text-h4--line-height: 1.4;
+  --text-h4--letter-spacing: -0.01em;
+  --text-h4--font-weight: 500;
+
+  --text-lead: clamp(1.0625rem, 1.35vw, 1.25rem);
+  --text-lead--line-height: 1.62;
+  --text-lead--letter-spacing: -0.008em;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.72;
+
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.6;
+
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.5;
+  --text-micro--letter-spacing: 0.16em;
+
+  /* ── Radii ────────────────────────────────────────────────────────────── */
+  --radius-hairline: 3px;
+  --radius-chip: 8px;
+  --radius-control: 12px;
+  --radius-panel: 18px;
+  --radius-card: 22px;
+  --radius-feature: 28px;
+
+  /* ── Easing (mirrors tokens.css so both CSS and utilities can reach it) ── */
+  --ease-spatial: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── Animations ───────────────────────────────────────────────────────── */
+  --animate-pulse-dot: pulse-dot 2.6s var(--ease-in-out-soft) infinite;
+  --animate-drift: drift 26s ease-in-out infinite;
+  --animate-sweep: sweep 3.4s var(--ease-in-out-soft) infinite;
+}
+
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * BASE
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    /* Anchor scrolling handled natively; JS only adds easing where allowed. */
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    /* Guarantees no horizontal scrollbar can ever appear from an overflowing
+     * decorative layer — a hard requirement of the mobile spec. */
+    overflow-x: hidden;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    background-color: var(--color-void);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.72;
+    font-weight: 400;
+    font-synthesis-weight: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  }
+
+  /* Headings inherit scale from utilities; reset intrinsic margins only. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0;
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  ul,
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  img,
+  svg,
+  canvas,
+  video {
+    display: block;
+    max-width: 100%;
+  }
+
+  /* Tabular, aligned digits wherever numerals are structural. */
+  .font-mono,
+  [class*="font-mono"] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* ── Focus ──────────────────────────────────────────────────────────────
+   * One consistent, high-contrast ring everywhere. Never removed.
+   */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: var(--radius-hairline);
+  }
+
+  /* Suppress the ring for pointer users while keeping it for keyboard. */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  ::selection {
+    background-color: rgb(157 198 216 / 0.26);
+    color: var(--color-text);
+  }
+
+  /* Anchor targets clear the floating navigation. */
+  [id] {
+    scroll-margin-top: var(--scroll-offset);
+  }
+
+  /* A restrained scrollbar that matches the material system (WebKit). */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-void);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(255 255 255 / 0.09);
+    border: 2px solid var(--color-void);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(255 255 255 / 0.16);
+  }
+}
+
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * UTILITIES
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+@layer utilities {
+  /* ── Layout ───────────────────────────────────────────────────────────── */
+
+  /** Centred content column with responsive gutters. */
+  .shell {
+    width: 100%;
+    max-width: var(--shell-max);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .shell-wide {
+    max-width: var(--shell-wide);
+  }
+
+  /** Standard vertical rhythm between major sections. */
+  .section-y {
+    padding-block: var(--section-gap);
+  }
+
+  /** Comfortable reading measures. */
+  .measure {
+    max-width: var(--measure);
+  }
+  .measure-tight {
+    max-width: var(--measure-tight);
+  }
+
+  /* ── Typographic accents ──────────────────────────────────────────────── */
+
+  /** Small all-caps label with wide tracking — section kickers, meta labels. */
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    line-height: 1.5;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-accent-warm);
+  }
+
+  .kicker-muted {
+    color: var(--color-subtle);
+  }
+
+  /**
+   * Restrained gradient for the hero name only — a vertical light falloff,
+   * not a colour gradient. Used exactly once on the page.
+   */
+  .text-lit {
+    background-image: linear-gradient(
+      to bottom,
+      #ffffff 0%,
+      #e8ecf1 42%,
+      #a9b2be 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    /* Fallback for clip-path-less engines. */
+    -webkit-text-fill-color: transparent;
+  }
+
+  @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+    .text-lit {
+      color: var(--color-text);
+      -webkit-text-fill-color: currentColor;
+    }
+  }
+
+  /* ── Scroll reveal ────────────────────────────────────────────────────────
+   * Driven by `Reveal` via IntersectionObserver. Elements are visible by
+   * default and only hidden once JS marks them as observed, so the page is
+   * fully readable with JavaScript disabled.
+   */
+  [data-reveal="pending"] {
+    opacity: 0;
+    transform: translate3d(0, var(--reveal-shift, 20px), 0);
+  }
+
+  [data-reveal] {
+    transition:
+      opacity var(--dur-reveal) var(--ease-spatial) var(--reveal-delay, 0ms),
+      transform var(--dur-reveal) var(--ease-spatial) var(--reveal-delay, 0ms);
+  }
+
+  [data-reveal="shown"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ── Interaction helpers ──────────────────────────────────────────────── */
+
+  /** Opt an element out of pointer events without hiding it from layout. */
+  .inert-layer {
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /** Visually hidden but available to assistive technology. */
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /** Masks the bottom of a scrollable/overflowing region. */
+  .fade-b {
+    mask-image: linear-gradient(to bottom, black 72%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, black 72%, transparent);
+  }
+}
+
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * KEYFRAMES
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.86);
+  }
+}
+
+/* Extremely slow ambient drift for background light. Never noticeable. */
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, -1.5%, 0) scale(1.06);
+  }
+}
+
+/* A single travelling highlight, used for "reserved" project slots. */
+@keyframes sweep {
+  0% {
+    transform: translateX(-110%);
+  }
+  60%,
+  100% {
+    transform: translateX(210%);
+  }
+}
+
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * REDUCED MOTION
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Not a blanket `animation: none` — that would leave elements stuck in their
+ * pre-reveal hidden state. Instead: reveals resolve instantly and visibly,
+ * ambient loops stop, and transforms are removed while opacity fades remain.
+ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  /* Content must never be left invisible by a skipped animation. */
+  [data-reveal],
+  [data-reveal="pending"] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

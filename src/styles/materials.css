@@ -1,0 +1,253 @@
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * LIQUID GLASS MATERIAL SYSTEM
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Glass here is built as a *material*, not as `backdrop-filter: blur()`.
+ * Every level composes four physical cues:
+ *
+ *   1. Body tint     — a vertical gradient, denser at the top where light lands
+ *   2. Refraction    — backdrop blur plus saturation, so colour bleeds through
+ *   3. Edge light    — an inset top highlight and a darker inset underside,
+ *                      which together read as pane *thickness*
+ *   4. Elevation     — a soft, wide, low-opacity drop shadow
+ *
+ * Optional add-ons: `.glass-sheen` (pointer-tracking specular highlight) and
+ * `.glass-rim` (a refraction-like bright rim along the top edge).
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+/* ── Shared base ───────────────────────────────────────────────────────────── */
+
+.glass-1,
+.glass-2,
+.glass-3 {
+  position: relative;
+  isolation: isolate;
+  border-style: solid;
+  border-width: 1px;
+  /* Keeps the tint gradient from being scaled by the border box. */
+  background-origin: border-box;
+  transition:
+    border-color var(--dur-base) var(--ease-out-soft),
+    box-shadow var(--dur-base) var(--ease-out-soft),
+    background-color var(--dur-base) var(--ease-out-soft),
+    transform var(--dur-slow) var(--ease-spatial);
+}
+
+/* `backdrop-filter` is applied on its own layer so it can be dropped by the
+ * `no-backdrop` fallback without touching the rest of the material. */
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .glass-1 {
+    -webkit-backdrop-filter: blur(var(--glass-1-blur)) saturate(var(--glass-1-saturate));
+    backdrop-filter: blur(var(--glass-1-blur)) saturate(var(--glass-1-saturate));
+  }
+  .glass-2 {
+    -webkit-backdrop-filter: blur(var(--glass-2-blur)) saturate(var(--glass-2-saturate));
+    backdrop-filter: blur(var(--glass-2-blur)) saturate(var(--glass-2-saturate));
+  }
+  .glass-3 {
+    -webkit-backdrop-filter: blur(var(--glass-3-blur)) saturate(var(--glass-3-saturate));
+    backdrop-filter: blur(var(--glass-3-blur)) saturate(var(--glass-3-saturate));
+  }
+}
+
+/* ── Level 1 — navigation, chips, small controls ──────────────────────────── */
+
+.glass-1 {
+  background-image: linear-gradient(
+    to bottom,
+    var(--glass-1-tint-top),
+    var(--glass-1-tint-bottom)
+  );
+  border-color: var(--glass-1-border);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-1-edge),
+    inset 0 -1px 0 0 var(--glass-1-underside),
+    var(--glass-1-elevation);
+}
+
+/* ── Level 2 — cards, skill containers, information panels ────────────────── */
+
+.glass-2 {
+  background-image: linear-gradient(
+    to bottom,
+    var(--glass-2-tint-top),
+    var(--glass-2-tint-bottom)
+  );
+  border-color: var(--glass-2-border);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-2-edge),
+    inset 0 -1px 0 0 var(--glass-2-underside),
+    var(--glass-2-elevation);
+}
+
+/* ── Level 3 — featured, thicker, more refractive ─────────────────────────── */
+
+.glass-3 {
+  background-image: linear-gradient(
+    to bottom,
+    var(--glass-3-tint-top),
+    var(--glass-3-tint-bottom)
+  );
+  border-color: var(--glass-3-border);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-3-edge),
+    inset 0 -1px 0 0 var(--glass-3-underside),
+    var(--glass-3-elevation);
+}
+
+/* ── Pointer-tracking specular sheen ──────────────────────────────────────────
+ * `--mx` / `--my` are written by `usePointerSurface`. Without JS (or on touch)
+ * the gradient simply stays at its default position and hidden, so this is
+ * purely additive.
+ */
+.glass-sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    var(--sheen-radius) circle at var(--mx, 50%) var(--my, 0%),
+    rgb(255 255 255 / var(--sheen-strength)),
+    transparent 62%
+  );
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease-out-soft);
+}
+
+.glass-sheen:hover::before,
+.glass-sheen:focus-within::before {
+  opacity: 1;
+}
+
+/* ── Refraction rim ──────────────────────────────────────────────────────────
+ * A bright, very short gradient hugging the top edge — the cue that sells
+ * "thick glass" more than blur ever does. Fades out toward the sides.
+ */
+.glass-rim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0.09) 0,
+    rgb(255 255 255 / 0.02) 1.5px,
+    transparent 12%
+  );
+  /* Taper the rim so it reads as a curved surface, not a painted line. */
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 18%,
+    black 82%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 18%,
+    black 82%,
+    transparent
+  );
+}
+
+/* ── Interactive lift ─────────────────────────────────────────────────────────
+ * Applied to cards and panels that respond to hover. Small displacement,
+ * brighter border, deeper shadow — the surface moves closer to the light.
+ */
+.glass-interactive {
+  will-change: transform;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .glass-interactive:hover {
+    transform: translate3d(0, var(--lift-card), 0);
+    border-color: var(--hairline-strong);
+  }
+
+  .glass-interactive.glass-2:hover {
+    box-shadow:
+      inset 0 1px 0 0 var(--glass-3-edge),
+      inset 0 -1px 0 0 var(--glass-2-underside),
+      var(--glass-3-elevation);
+  }
+}
+
+/* Keyboard parity: focusing a card should give the same affordance as hover. */
+.glass-interactive:focus-within {
+  border-color: var(--hairline-strong);
+}
+
+/* ── Inset well ──────────────────────────────────────────────────────────────
+ * The inverse material — a recess carved into a surface. Used for code-ish
+ * detail areas and reserved/pending states, where "empty by design" should
+ * read as intentional rather than broken.
+ */
+.glass-well {
+  background-color: rgb(0 0 0 / 0.22);
+  border: 1px solid var(--hairline-faint);
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 0.4),
+    inset 0 -1px 0 rgb(255 255 255 / 0.03);
+}
+
+/* ── Divider ─────────────────────────────────────────────────────────────── */
+
+.hairline-x {
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    var(--hairline) 15%,
+    var(--hairline) 85%,
+    transparent
+  );
+  block-size: 1px;
+  border: 0;
+}
+
+/* ── Fallbacks & accessibility ────────────────────────────────────────────────
+ * Where backdrop-filter is unsupported, glass becomes an opaque tinted panel.
+ * Contrast and hierarchy survive; only the refraction is lost.
+ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-1 {
+    background-color: rgb(19 23 30 / 0.94);
+  }
+  .glass-2 {
+    background-color: rgb(21 25 33 / 0.95);
+  }
+  .glass-3 {
+    background-color: rgb(24 29 38 / 0.96);
+  }
+}
+
+/* Users who ask for less motion keep the material, lose the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .glass-interactive:hover {
+    transform: none;
+  }
+  .glass-sheen::before {
+    transition: none;
+  }
+}
+
+/* Windows High Contrast / forced colours: strip decoration, keep structure. */
+@media (forced-colors: active) {
+  .glass-1,
+  .glass-2,
+  .glass-3 {
+    border-color: CanvasText;
+    background-image: none;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .glass-sheen::before,
+  .glass-rim::after {
+    display: none;
+  }
+}

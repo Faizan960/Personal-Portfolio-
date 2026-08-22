@@ -1,0 +1,140 @@
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * DESIGN TOKENS
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Single source of truth for every non-colour design decision: glass material
+ * parameters, blur radii, shadow ladders, motion timing, easing, layout widths
+ * and z-index layering.
+ *
+ * Colour, font-family and border-radius tokens live in `globals.css` under
+ * `@theme`, because Tailwind needs them there to generate utility classes.
+ *
+ * Retuning the whole site's feel should mean editing values here — not
+ * hunting through components.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+:root {
+  /* ── Glass material system ───────────────────────────────────────────────
+   * Three levels, each a genuine material with its own transparency, blur,
+   * border weight, edge highlight and elevation. Level is chosen by role,
+   * not by decoration.
+   *
+   *   Level 1 → navigation, chips, small controls, secondary surfaces
+   *   Level 2 → project cards, skill containers, information panels
+   *   Level 3 → featured / important interactive components (used sparingly)
+   */
+
+  /* Level 1 — light, close to the page */
+  --glass-1-tint-top: rgb(255 255 255 / 0.055);
+  --glass-1-tint-bottom: rgb(255 255 255 / 0.022);
+  --glass-1-border: rgb(255 255 255 / 0.075);
+  --glass-1-blur: 20px;
+  --glass-1-saturate: 155%;
+  --glass-1-edge: rgb(255 255 255 / 0.062);
+  --glass-1-underside: rgb(0 0 0 / 0.24);
+  --glass-1-elevation: 0 6px 20px -12px rgb(0 0 0 / 0.62);
+
+  /* Level 2 — the workhorse card material */
+  --glass-2-tint-top: rgb(255 255 255 / 0.062);
+  --glass-2-tint-bottom: rgb(255 255 255 / 0.024);
+  --glass-2-border: rgb(255 255 255 / 0.088);
+  --glass-2-blur: 26px;
+  --glass-2-saturate: 165%;
+  --glass-2-edge: rgb(255 255 255 / 0.085);
+  --glass-2-underside: rgb(0 0 0 / 0.3);
+  --glass-2-elevation: 0 16px 44px -24px rgb(0 0 0 / 0.75);
+
+  /* Level 3 — featured surfaces, thicker and more refractive */
+  --glass-3-tint-top: rgb(255 255 255 / 0.085);
+  --glass-3-tint-bottom: rgb(255 255 255 / 0.03);
+  --glass-3-border: rgb(255 255 255 / 0.125);
+  --glass-3-blur: 40px;
+  --glass-3-saturate: 180%;
+  --glass-3-edge: rgb(255 255 255 / 0.13);
+  --glass-3-underside: rgb(0 0 0 / 0.34);
+  --glass-3-elevation: 0 28px 70px -30px rgb(0 0 0 / 0.82);
+
+  /* Specular sheen that tracks the pointer across a glass surface. */
+  --sheen-strength: 0.1;
+  --sheen-radius: 340px;
+
+  /* ── Hairlines ───────────────────────────────────────────────────────────
+   * Sub-pixel dividers. Deliberately dimmer than any glass border so
+   * structure reads as light, not as boxes.
+   */
+  --hairline: rgb(255 255 255 / 0.07);
+  --hairline-strong: rgb(255 255 255 / 0.12);
+  --hairline-faint: rgb(255 255 255 / 0.04);
+
+  /* ── Ambient lighting ────────────────────────────────────────────────────
+   * Very low-opacity atmosphere behind all content. If any of these become
+   * individually noticeable, they are too strong.
+   */
+  --ambient-cool: rgb(120 170 195 / 0.052);
+  --ambient-warm: rgb(205 180 140 / 0.03);
+  --ambient-deep: rgb(70 95 125 / 0.045);
+  --grain-opacity: 0.028;
+  --grid-opacity: 0.022;
+
+  /* ── Shadow ladder (non-glass elements) ──────────────────────────────── */
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-sm: 0 2px 8px -2px rgb(0 0 0 / 0.5);
+  --shadow-md: 0 10px 30px -14px rgb(0 0 0 / 0.65);
+  --shadow-lg: 0 24px 60px -28px rgb(0 0 0 / 0.78);
+  --shadow-glow-accent: 0 0 40px -8px rgb(157 198 216 / 0.28);
+
+  /* ── Motion ──────────────────────────────────────────────────────────────
+   * Restrained. Nothing on this site should animate longer than `--dur-slower`.
+   */
+  --dur-instant: 90ms;
+  --dur-fast: 150ms;
+  --dur-base: 220ms;
+  --dur-slow: 340ms;
+  --dur-slower: 520ms;
+  --dur-reveal: 720ms;
+
+  /* Apple-adjacent decelerations: strong start, long soft settle. */
+  --ease-spatial: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Interaction magnitudes — small on purpose. */
+  --lift-card: -4px;
+  --lift-button: -1.5px;
+  --magnet-strength: 0.16;
+  --tilt-max: 7deg;
+
+  /* ── Layout ──────────────────────────────────────────────────────────── */
+  --shell-max: 1200px;
+  --shell-wide: 1360px;
+  --measure: 62ch;
+  --measure-tight: 48ch;
+  --gutter: clamp(1.25rem, 4vw, 3.5rem);
+  --section-gap: clamp(5.5rem, 12vh, 10rem);
+  --nav-height: 4rem;
+  /* Offset used for scroll-margin so anchors clear the floating nav. */
+  --scroll-offset: 6.5rem;
+
+  /* ── Z-index scale ───────────────────────────────────────────────────── */
+  --z-ambient: 0;
+  --z-content: 10;
+  --z-raised: 20;
+  --z-nav: 60;
+  --z-overlay: 70;
+  --z-modal: 80;
+}
+
+/* Slightly tighter rhythm and shorter motion on small screens: mobile is a
+ * deliberate layout, not a squeezed desktop one. */
+@media (max-width: 640px) {
+  :root {
+    --section-gap: clamp(4rem, 9vh, 6rem);
+    --scroll-offset: 5rem;
+    --dur-reveal: 560ms;
+    --glass-1-blur: 16px;
+    --glass-2-blur: 20px;
+    --glass-3-blur: 28px;
+  }
+}
