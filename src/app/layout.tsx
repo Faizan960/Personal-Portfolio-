@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
+import { Analytics } from "@vercel/analytics/next";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { Footer } from "@/components/Footer";
 import { Navigation } from "@/components/Navigation";
@@ -92,6 +93,8 @@ export default function RootLayout({
         <div className="relative" style={{ zIndex: "var(--z-content)" }}>
           <Footer />
         </div>
+
+        <Analytics />
       </body>
     </html>
   );
