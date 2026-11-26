@@ -44,12 +44,9 @@
  */
 
 import Image from "next/image";
-import {
-  hasProjectDetail,
-  projectDetailHref,
-  projects,
-  type Project,
-} from "@/data/portfolio";
+import { hasProjectDetail, type Project } from "@/data/portfolio";
+import { usePublicPortfolio } from "@/lib/portfolio/publicContext";
+import { getDefaultSectionsConfig } from "@/lib/cms/storage";
 import { MagneticButton } from "@/components/primitives/Button";
 import { Chip } from "@/components/primitives/Chip";
 import { GlassPanel } from "@/components/primitives/GlassPanel";
@@ -60,6 +57,7 @@ import { cn } from "@/lib/cn";
 import {
   isExternalHref,
   presentRepository,
+  resolveProjectDetailHref,
   statusIsActive,
   statusLabel,
 } from "@/lib/project";
@@ -118,10 +116,11 @@ function present(project: Project): Presentation {
   const repo = presentRepository(project);
 
   const actions: CardAction[] = [];
-  if (hasProjectDetail(project)) {
+  const detailHref = resolveProjectDetailHref(project, project.summary);
+  if (detailHref && (hasProjectDetail(project) || project.summary.trim().length > 0)) {
     actions.push({
       key: "detail",
-      href: projectDetailHref(project),
+      href: detailHref,
       label: ACTION_LABELS.detail,
     });
   }
@@ -158,6 +157,12 @@ function present(project: Project): Presentation {
 /* ── Projects ──────────────────────────────────────────────────────────────── */
 
 export function Projects() {
+  const { draft, isPreviewMode } = usePublicPortfolio();
+  const projects = draft.projects.filter(
+    (p) => isPreviewMode || p.isPublished !== false,
+  ) as unknown as readonly Project[];
+  const sectionSetting = (draft.sectionsConfig ?? getDefaultSectionsConfig()).sections.work;
+
   /* `find` rather than a filter: the lead surface is singular by definition. If
    * the data ever marks several as featured, the first wins and the rest render
    * as ordinary cards — the section never sprouts competing focal panels. */
@@ -169,7 +174,8 @@ export function Projects() {
       <SectionHeading
         index={SECTION_INDEX}
         kicker={SECTION_KICKER}
-        heading={SECTION_HEADING}
+        heading={sectionSetting.headingOverride ?? SECTION_HEADING}
+        lead={sectionSetting.introOverride ?? undefined}
         id="work-heading"
       />
 

@@ -6,11 +6,13 @@
  * only one using the `.text-lit` treatment.
  */
 
-import { hero, personal } from "@/data/portfolio";
+import { usePublicPortfolio } from "@/lib/portfolio/publicContext";
 import { MagneticButton } from "@/components/primitives/Button";
 import { Reveal } from "@/components/primitives/Reveal";
 
 export function HeroContent() {
+  const { draft } = usePublicPortfolio();
+  const { hero, personal } = draft;
   return (
     <div className="relative z-10 flex flex-col items-start">
       {/* Status pill — states the role without spending display type on it. */}

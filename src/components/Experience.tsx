@@ -30,10 +30,9 @@
  * invented bullet points would be worse than both.
  */
 
-import {
-  experience,
-  type ExperienceItem as ExperienceItemContent,
-} from "@/data/portfolio";
+import type { ExperienceItem as ExperienceItemContent } from "@/data/portfolio";
+import { usePublicPortfolio } from "@/lib/portfolio/publicContext";
+import { getDefaultSectionsConfig } from "@/lib/cms/storage";
 import { Chip } from "@/components/primitives/Chip";
 import { GlassPanel } from "@/components/primitives/GlassPanel";
 import { Reveal } from "@/components/primitives/Reveal";
@@ -85,6 +84,9 @@ const LIVE_APPROACH_GRADIENT =
 /* ── Experience ────────────────────────────────────────────────────────────── */
 
 export function Experience() {
+  const { draft } = usePublicPortfolio();
+  const experience = draft.experience.filter((item) => item.isVisible !== false);
+  const sectionSetting = (draft.sectionsConfig ?? getDefaultSectionsConfig()).sections.experience;
   /**
    * Level 3 is reserved for one focal surface per section, and here that is the
    * role that is actually ongoing. Resolved by id (not index) so only the first
@@ -93,12 +95,15 @@ export function Experience() {
   const featuredId = experience.find((item) => item.current)?.id ?? null;
   const lastIndex = experience.length - 1;
 
+  if (experience.length === 0) return null;
+
   return (
     <Section id="experience" labelledBy="experience-heading">
       <SectionHeading
         index={SECTION_INDEX}
         kicker={SECTION_KICKER}
-        heading={SECTION_HEADING}
+        heading={sectionSetting.headingOverride ?? SECTION_HEADING}
+        lead={sectionSetting.introOverride ?? undefined}
         id="experience-heading"
       />
 

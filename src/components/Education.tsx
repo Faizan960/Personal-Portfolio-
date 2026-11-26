@@ -22,7 +22,9 @@
  * entries and so renders nothing at all; no invented coursework, no CGPA.
  */
 
-import { education, type EducationItem } from "@/data/portfolio";
+import type { EducationItem } from "@/data/portfolio";
+import { usePublicPortfolio } from "@/lib/portfolio/publicContext";
+import { getDefaultSectionsConfig } from "@/lib/cms/storage";
 import { GlassPanel } from "@/components/primitives/GlassPanel";
 import { Reveal } from "@/components/primitives/Reveal";
 import { Section } from "@/components/primitives/Section";
@@ -58,12 +60,17 @@ const PENDING_LABEL = "Not provided";
 /* ── Education ─────────────────────────────────────────────────────────────── */
 
 export function Education() {
+  const { draft } = usePublicPortfolio();
+  const education = draft.education.filter((item) => item.isVisible !== false);
+  const sectionSetting = (draft.sectionsConfig ?? getDefaultSectionsConfig()).sections.education;
+
   return (
     <Section id="education" labelledBy="education-heading">
       <SectionHeading
         index={SECTION_INDEX}
         kicker={SECTION_KICKER}
-        heading={SECTION_HEADING}
+        heading={sectionSetting.headingOverride ?? SECTION_HEADING}
+        lead={sectionSetting.introOverride ?? undefined}
         id="education-heading"
       />
 

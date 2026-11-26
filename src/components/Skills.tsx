@@ -13,10 +13,9 @@
  * category, or ten more chips to an existing one, needs no layout work.
  */
 
-import {
-  skills,
-  type SkillCategory as SkillCategoryContent,
-} from "@/data/portfolio";
+import type { SkillCategory as SkillCategoryContent } from "@/data/portfolio";
+import { usePublicPortfolio } from "@/lib/portfolio/publicContext";
+import { getDefaultSectionsConfig } from "@/lib/cms/storage";
 import { Chip } from "@/components/primitives/Chip";
 import { Reveal } from "@/components/primitives/Reveal";
 import { Section } from "@/components/primitives/Section";
@@ -43,12 +42,17 @@ const PENDING_ITEMS_COPY = "Tooling for this area is still being confirmed.";
 /* ── Skills ────────────────────────────────────────────────────────────────── */
 
 export function Skills() {
+  const { draft } = usePublicPortfolio();
+  const skills = draft.skills.filter((cat) => cat.isVisible !== false);
+  const sectionSetting = (draft.sectionsConfig ?? getDefaultSectionsConfig()).sections.skills;
+
   return (
     <Section id="skills" labelledBy="skills-heading">
       <SectionHeading
         index={SECTION_INDEX}
         kicker={SECTION_KICKER}
-        heading={SECTION_HEADING}
+        heading={sectionSetting.headingOverride ?? SECTION_HEADING}
+        lead={sectionSetting.introOverride ?? undefined}
         id="skills-heading"
       />
 

@@ -12,6 +12,8 @@ export interface SectionHeadingProps {
   kicker: string;
   /** Full heading text, e.g. "Selected Work". */
   heading: string;
+  /** Optional intro subtitle configured in CMS Homepage Manager. */
+  lead?: string;
   /** Optional index rendered as a small mono numeral before the kicker. */
   index?: string;
   className?: string;
@@ -21,6 +23,7 @@ export interface SectionHeadingProps {
 export function SectionHeading({
   kicker,
   heading,
+  lead,
   index,
   className,
   id,
@@ -45,6 +48,9 @@ export function SectionHeading({
       >
         {heading}
       </h2>
+      {lead ? (
+        <p className="measure mt-4 text-lead text-muted">{lead}</p>
+      ) : null}
     </Reveal>
   );
 }

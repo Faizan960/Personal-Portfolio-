@@ -32,10 +32,9 @@ export function Hero() {
             <HeroContent />
           </div>
 
-          {/* The core sits in the right column on large screens, and is capped
-              well below full width on small ones. */}
+          {/* Digital Core — right visual column */}
           <div className="lg:col-span-5 xl:col-span-6">
-            <div className="mx-auto w-[min(72vw,22rem)] md:w-[min(52vw,26rem)] lg:mr-0 lg:w-full lg:max-w-[30rem]">
+            <div className="mx-auto w-[min(84vw,24rem)] md:w-[min(60vw,28rem)] lg:mr-0 lg:w-full lg:max-w-[34rem] xl:max-w-[38rem]">
               <DigitalCore />
             </div>
           </div>

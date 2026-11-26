@@ -31,13 +31,9 @@
  * asymmetry is the design, not a gap in it.
  */
 
-import {
-  achievements,
-  certifications,
-  recognition,
-  type Achievement,
-  type Certification,
-} from "@/data/portfolio";
+import type { Achievement, Certification } from "@/data/portfolio";
+import { usePublicPortfolio } from "@/lib/portfolio/publicContext";
+import { getDefaultSectionsConfig } from "@/lib/cms/storage";
 import { GlassPanel } from "@/components/primitives/GlassPanel";
 import { Reveal } from "@/components/primitives/Reveal";
 import { Section } from "@/components/primitives/Section";
@@ -78,6 +74,12 @@ function isExternal(href: string) {
 /* ── Recognition ───────────────────────────────────────────────────────────── */
 
 export function Recognition() {
+  const { draft } = usePublicPortfolio();
+  const achievements = draft.achievements.filter((a) => a.isVisible !== false);
+  const certifications = draft.certifications.filter((c) => c.isVisible !== false);
+  const { recognition } = draft;
+  const sectionSetting = (draft.sectionsConfig ?? getDefaultSectionsConfig()).sections.recognition;
+
   const hasAchievements = achievements.length > 0;
   const hasCertifications = certifications.length > 0;
 
@@ -92,7 +94,8 @@ export function Recognition() {
       <SectionHeading
         index={SECTION_INDEX}
         kicker={recognition.kicker}
-        heading={recognition.heading}
+        heading={sectionSetting.headingOverride ?? recognition.heading}
+        lead={sectionSetting.introOverride ?? undefined}
         id="recognition-heading"
       />
 

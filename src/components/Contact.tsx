@@ -15,7 +15,8 @@
  * `target="_blank"` for http(s) and no target for `mailto:`.
  */
 
-import { contact, personal } from "@/data/portfolio";
+import { usePublicPortfolio } from "@/lib/portfolio/publicContext";
+import { getDefaultSectionsConfig } from "@/lib/cms/storage";
 import { MagneticButton } from "@/components/primitives/Button";
 import { GlassPanel } from "@/components/primitives/GlassPanel";
 import { Reveal } from "@/components/primitives/Reveal";
@@ -38,6 +39,9 @@ function isExternal(href: string) {
 }
 
 export function Contact() {
+  const { draft } = usePublicPortfolio();
+  const { contact, personal } = draft;
+  const sectionSetting = (draft.sectionsConfig ?? getDefaultSectionsConfig()).sections.contact;
   // Guarded lookup — `find` is `SocialLink | undefined`, and the href may be null.
   const emailLink = contact.links.find((link) => link.id === "email");
   const emailHref = emailLink?.href ?? null;
@@ -51,7 +55,8 @@ export function Contact() {
       <SectionHeading
         index="08"
         kicker={contact.kicker}
-        heading={contact.heading}
+        heading={sectionSetting.headingOverride ?? contact.heading}
+        lead={sectionSetting.introOverride ?? undefined}
         id="contact-heading"
       />
 

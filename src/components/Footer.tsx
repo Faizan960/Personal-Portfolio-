@@ -15,11 +15,13 @@
  */
 
 import { useEffect, useState } from "react";
-import { personal, social } from "@/data/portfolio";
+import { usePublicPortfolio } from "@/lib/portfolio/publicContext";
 import { Reveal } from "@/components/primitives/Reveal";
 import { cn } from "@/lib/cn";
 
 export function Footer() {
+  const { draft } = usePublicPortfolio();
+  const { personal, social } = draft;
   /**
    * Tradeoff: the year is read on the client after mount rather than at build
    * time, because this is a static export — a build-time year would silently go

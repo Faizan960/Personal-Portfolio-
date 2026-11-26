@@ -17,7 +17,9 @@
  * the list is simply present.
  */
 
-import { exploring, type ExploringItem } from "@/data/portfolio";
+import type { ExploringItem } from "@/data/portfolio";
+import { usePublicPortfolio } from "@/lib/portfolio/publicContext";
+import { getDefaultSectionsConfig } from "@/lib/cms/storage";
 import { Reveal } from "@/components/primitives/Reveal";
 import { Section } from "@/components/primitives/Section";
 import { SectionHeading } from "@/components/primitives/SectionHeading";
@@ -35,14 +37,20 @@ const SECTION_HEADING = "Currently Exploring";
 /* ── CurrentlyExploring ────────────────────────────────────────────────────── */
 
 export function CurrentlyExploring() {
+  const { draft } = usePublicPortfolio();
+  const exploring = draft.exploring.filter((item) => item.isVisible !== false);
+  const sectionSetting = (draft.sectionsConfig ?? getDefaultSectionsConfig()).sections.exploring;
   const lastIndex = exploring.length - 1;
+
+  if (exploring.length === 0) return null;
 
   return (
     <Section id="exploring" labelledBy="exploring-heading">
       <SectionHeading
         index={SECTION_INDEX}
         kicker={SECTION_KICKER}
-        heading={SECTION_HEADING}
+        heading={sectionSetting.headingOverride ?? SECTION_HEADING}
+        lead={sectionSetting.introOverride ?? undefined}
         id="exploring-heading"
       />
 

@@ -2,9 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-import { AmbientBackground } from "@/components/AmbientBackground";
-import { Footer } from "@/components/Footer";
-import { Navigation } from "@/components/Navigation";
+import { PublicChrome } from "@/components/PublicChrome";
 import { meta, personal } from "@/data/portfolio";
 
 /**
@@ -76,22 +74,13 @@ export default function RootLayout({
         </noscript>
       </head>
       <body className="antialiased">
-        <AmbientBackground />
-        <Navigation />
-
-        {/* Sits above the fixed ambient layer. */}
-        <main
-          id="main"
-          className="relative"
-          style={{ zIndex: "var(--z-content)" }}
-        >
-          {children}
-        </main>
-
-        {/* Outside <main>, as a site-level landmark rather than page content. */}
-        <div className="relative" style={{ zIndex: "var(--z-content)" }}>
-          <Footer />
-        </div>
+        {/*
+          PublicChrome renders the ambient background, navigation, <main>, and
+          footer for the public portfolio, wrapping {children} inside <main>.
+          On /admin/* routes it passes children through unwrapped so the admin
+          layout can supply its own full-screen shell.
+        */}
+        <PublicChrome>{children}</PublicChrome>
       </body>
     </html>
   );

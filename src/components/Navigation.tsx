@@ -14,8 +14,10 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { navSections, personal } from "@/data/portfolio";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { usePublicPortfolio } from "@/lib/portfolio/publicContext";
+import { getDefaultSectionsConfig } from "@/lib/cms/storage";
+import type { HomepageSectionId } from "@/lib/cms/types";
 import {
   useScrolledPast,
   useScrollSpy,
@@ -23,12 +25,26 @@ import {
 } from "@/lib/hooks";
 import { cn } from "@/lib/cn";
 
-const SECTION_IDS = navSections.map((section) => section.id);
-
 export function Navigation() {
+  const { draft } = usePublicPortfolio();
+  const { personal } = draft;
+  const sectionsConfig = draft.sectionsConfig ?? getDefaultSectionsConfig();
+  const navSections = useMemo(
+    () =>
+      draft.navSections.filter((section) => {
+        const cfg = sectionsConfig.sections[section.id as HomepageSectionId];
+        return !cfg || cfg.locked || cfg.visible;
+      }),
+    [draft.navSections, sectionsConfig],
+  );
+  const sectionIds = useMemo(
+    () => navSections.map((section) => section.id),
+    [navSections],
+  );
+
   const [menuOpen, setMenuOpen] = useState(false);
   const condensed = useScrolledPast(24);
-  const active = useScrollSpy(SECTION_IDS);
+  const active = useScrollSpy(sectionIds);
   const scrollTo = useScrollToSection();
 
   const menuId = useId();

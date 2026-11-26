@@ -9,7 +9,12 @@
  * one answer, everywhere.
  */
 
-import type { Project, ProjectStatus } from "@/data/portfolio";
+import {
+  projects as baselineProjects,
+  hasProjectDetail,
+  type Project,
+  type ProjectStatus,
+} from "@/data/portfolio";
 
 /**
  * Status wording. Every one of these is deliberately non-committal: none implies
@@ -91,4 +96,35 @@ export function statusIsActive(project: Project): boolean {
 /** Only http(s) destinations get a new tab; a local `/work/…` route must not. */
 export function isExternalHref(href: string): boolean {
   return href.startsWith("http://") || href.startsWith("https://");
+}
+
+/**
+ * Resolves a project's case study href cleanly for static export (`output: "export"`).
+ * Prebuilt baseline projects with detail keep `/work/<slug>/`; newly created CMS/DB
+ * projects route through `/work/view/?id=<slug>` so they load live without rebuilding.
+ */
+export function resolveProjectDetailHref(
+  project: Pick<Project, "id" | "detail">,
+  fallbackSummary?: string,
+): string | null {
+  const isPrebuilt = baselineProjects.some(
+    (p) => p.id === project.id && hasProjectDetail(p),
+  );
+  if (isPrebuilt) {
+    return `/work/${project.id}/`;
+  }
+  const hasRichDetail =
+    Boolean(project.detail.problem) ||
+    Boolean(project.detail.solution) ||
+    Boolean(project.detail.contribution) ||
+    project.detail.features.length > 0 ||
+    project.detail.architecture.length > 0 ||
+    project.detail.challenges.length > 0 ||
+    project.detail.lessons.length > 0 ||
+    project.detail.futureScope.length > 0 ||
+    project.detail.screenshots.length > 0 ||
+    project.detail.reservedSections.length > 0 ||
+    Boolean(fallbackSummary);
+  if (!hasRichDetail) return null;
+  return `/work/view/?id=${encodeURIComponent(project.id)}`;
 }

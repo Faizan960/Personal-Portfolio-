@@ -9,7 +9,8 @@
  * paragraph sets the lead size, the rest fall back to body size.
  */
 
-import { about } from "@/data/portfolio";
+import { usePublicPortfolio } from "@/lib/portfolio/publicContext";
+import { getDefaultSectionsConfig } from "@/lib/cms/storage";
 import { GlassPanel } from "@/components/primitives/GlassPanel";
 import { Reveal } from "@/components/primitives/Reveal";
 import { Section } from "@/components/primitives/Section";
@@ -17,12 +18,17 @@ import { SectionHeading } from "@/components/primitives/SectionHeading";
 import { cn } from "@/lib/cn";
 
 export function About() {
+  const { draft } = usePublicPortfolio();
+  const { about } = draft;
+  const sectionSetting = (draft.sectionsConfig ?? getDefaultSectionsConfig()).sections.about;
+
   return (
     <Section id="about" labelledBy="about-heading">
       <SectionHeading
         index="01"
         kicker={about.kicker}
-        heading={about.heading}
+        heading={sectionSetting.headingOverride ?? about.heading}
+        lead={sectionSetting.introOverride ?? undefined}
         id="about-heading"
       />
 
